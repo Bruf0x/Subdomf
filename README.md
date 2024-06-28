@@ -16,12 +16,13 @@ This script uses:
 
 - crt.sh
 - certspotter
-- 
+- others in the furure...
+  
 With these APIs, it finds subdomains by passively searching Certificate Transparency logs.
 
 ```bash
 # Default patterns
-patterns=("api" "corp" "dev" "uat" "test" "stag" "sandbox" "prod" "internal" "hom" "prd" "intranet" "mail")
+patterns=("api" "corp" "dev" "uat" "test" "stag" "sandbox" "prod" "hom")
 ```
 
 You can add more patterns with the -p option:
