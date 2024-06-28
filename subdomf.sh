@@ -46,12 +46,7 @@ gather_domains(){
 
     # Combine, sort, and remove duplicates
     sort -u ./$domain-crtsh.txt ./$domain-certspotter.txt > ./$domain-temp.txt
-
-    # Process digicert data if it exists
-    if [ -f ./$domain-digicert.json ]; then
-        jq -r '.data.certificateDetail[].commonName,.data.certificateDetail[].subjectAlternativeNames[]' ./$domain-digicert.json | sed 's/"//g' | sed 's/^www\.//' | grep -w "$domain$" | grep -v '^*.' >> ./$domain-temp.txt
-    fi
-
+    
     # Final sorting, removing duplicates, and saving
     sort -u ./$domain-temp.txt | tr '[:upper:]' '[:lower:]' | sort -u > ./$domain-subdomains.txt
     rm ./$domain-temp.txt ./$domain-crtsh.txt ./$domain-certspotter.txt
