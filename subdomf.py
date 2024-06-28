@@ -29,8 +29,15 @@ def add_patterns(custom_patterns_string):
 def query_crtsh(domain):
     print("[+] Searching in crt.sh...")
     crtsh_domains = set()
+
+    # Include search for the main domain itself
+    urls = [f"https://crt.sh/?q={domain}&output=json"]
+    
+    # Add patterns search URLs
     for pattern in patterns:
-        url = f"https://crt.sh/?q={pattern}.{domain}&output=json"
+        urls.append(f"https://crt.sh/?q={pattern}.{domain}&output=json")
+
+    for url in urls:
         response = requests.get(url)
         if response.status_code == 200:
             try:
@@ -38,9 +45,10 @@ def query_crtsh(domain):
                 for entry in data:
                     crtsh_domains.update(entry["name_value"].replace("*.", "").replace("www.", "").split())
             except json.JSONDecodeError:
-                print(f"[-] Invalid JSON response from crt.sh for pattern {pattern}")
+                print(f"[-] Invalid JSON response from crt.sh for URL: {url}")
         else:
-            print(f"[-] Failed to fetch data from crt.sh for pattern {pattern}")
+            print(f"[-] Failed to fetch data from crt.sh for URL: {url}")
+
     return crtsh_domains
 
 def query_certspotter(domain):
