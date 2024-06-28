@@ -13,7 +13,7 @@ echo '                                           '
 echo '                                           '
 
 # Default patterns
-patterns=("api" "corp" "dev" "uat" "test" "stag" "sandbox" "prod" "internal" "hom" "prd" "intranet" "mail")
+patterns=("api" "corp" "dev" "uat" "test" "stag" "sandbox" "prod" "hom")
 
 # Function to add custom patterns
 add_patterns() {
@@ -26,6 +26,7 @@ gather_domains(){
     local domain=$1
 
     # Get domains from crt.sh based on patterns
+    echo "[+] Searching in crt.sh..."
     for pattern in "${patterns[@]}"; do
         response=$(curl -s "https://crt.sh/?q=$pattern.$domain&output=json")
         if echo "$response" | jq -e . >/dev/null 2>&1; then
@@ -36,6 +37,7 @@ gather_domains(){
     done
 
     # Get domains from certspotter
+    echo "[+] Searching in certspotter..."
     response=$(curl -s "https://api.certspotter.com/v1/issuances?domain=$domain&include_subdomains=true&expand=dns_names&expand=issuer&expand=issuer.caa_domains")
     if echo "$response" | jq -e . >/dev/null 2>&1; then
         echo "$response" | jq '.[].dns_names[]' | sed 's/\"//g' | sed 's/\*\.//g' | sed 's/^www\.//' | sort -u >> ./$domain-certspotter.txt
@@ -46,14 +48,16 @@ gather_domains(){
 
     # Combine, sort, and remove duplicates
     sort -u ./$domain-crtsh.txt ./$domain-certspotter.txt > ./$domain-temp.txt
-    
-    # Final sorting, removing duplicates, and saving
+
+    # Final sorting, removing duplicates, searching in httprobe and saving
     sort -u ./$domain-temp.txt | tr '[:upper:]' '[:lower:]' | sort -u > ./$domain-subdomains.txt
+    echo "[+] Searching live domains in httprobe..."
+    cat ./$domain-subdomains.txt | httprobe > ./$domain-live-subdomains.txt
     rm ./$domain-temp.txt ./$domain-crtsh.txt ./$domain-certspotter.txt
 
     # Count the number of unique domains and subdomains
-    cat "./$domain-subdomains.txt"
-    echo "[+] Number of subdomains found: $(wc -l < ./$domain-subdomains.txt)"
+    cat "./$domain-live-subdomains.txt" 
+    echo "[+] Number of subdomains found: $(wc -l < ./$domain-live-subdomains.txt)"
 }
 
 # Parse arguments and add custom patterns
